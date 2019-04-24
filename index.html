@@ -1,10 +1,27 @@
 ﻿<html>
 <head>
+	<meta charset="UTF-8">
 	<title>
 		Ｋｏｓｔｒｚｙｎ．ｓｋｉ
 	</title>
 </head>
 <body>
+<script>
+	function loop() {
+        var i, n, s = '';
+		var width = String.fromCharCode(0x2581)
+        for (i = 20; i > 0; i--) {
+            n = Math.floor(Math.sin((Date.now()/200) + (i/2)) * 4) + 4;
+
+            s += String.fromCharCode(0x2581 + n);
+        }
+
+        window.location.hash = s;
+
+        setTimeout(loop, 50);
+    }
+    window.addEventListener('load', loop);
+</script>
 <style>
     { margin: 0; padding: 0; }
 
