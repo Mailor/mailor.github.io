@@ -6,6 +6,8 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
+    <script src="Leaflet.Control.Opacity/L.Control.Opacity.js"></script>
+    <link href="Leaflet.Control.Opacity/L.Control.Opacity.css" rel="stylesheet" />
 	<meta charset="UTF-8">
 	<title>
 		NBN Technology Map
@@ -43,7 +45,7 @@
         }
 
         // Mapbox Layer
-        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        var streetMap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
             maxZoom: 18,
             id: 'mapbox/streets-v11',
@@ -52,6 +54,24 @@
             accessToken: 'pk.eyJ1IjoiZGFuaWVsMTExMTEiLCJhIjoiY2ttbzB3amR0MjAxazJubW50Z3A3dDJ5MiJ9.dzV0NCOfJrZ3THX-vVuj9A'
         }).addTo(map);
 
+        var lightMap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/light-v9',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: 'pk.eyJ1IjoiZGFuaWVsMTExMTEiLCJhIjoiY2ttbzB3amR0MjAxazJubW50Z3A3dDJ5MiJ9.dzV0NCOfJrZ3THX-vVuj9A'
+        });
+
+        var darkMap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/dark-v9',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: 'pk.eyJ1IjoiZGFuaWVsMTExMTEiLCJhIjoiY2ttbzB3amR0MjAxazJubW50Z3A3dDJ5MiJ9.dzV0NCOfJrZ3THX-vVuj9A'
+        });
+
         // NBN Layers
         var fttpLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'FTTP'}).addTo(map);
         var fttbLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'FTTB'}).addTo(map);
@@ -59,9 +79,9 @@
         var fttnLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'FTTN'}).addTo(map);
         var hfcLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'HFC'}).addTo(map);
         var satelliteLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'Satellite'}).addTo(map);
-        var fixedSatelliteLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'T_SATELLITE'});
+        var fixedSatelliteLayer = L.tileLayer.wms('https://programs.communications.gov.au/geoserver/national-broadband-network/wms?', {...wmsOptions, layers: 'T_SATELLITE', opacity: 0}).addTo(map);
 
-        //Layer Control
+        //Layers
         var overlays = {
             "Fixed-Wireless": fixedSatelliteLayer,
             "Satellite": satelliteLayer,
@@ -72,7 +92,20 @@
             "Hybrid Fibre Coaxial": hfcLayer,
         };
 
-        L.control.layers(null, overlays, {collapsed: true}).addTo(map);
+        var mapBases = {
+            "Street Map": streetMap,
+            "Light Map": lightMap,
+            "Dark Map": darkMap,
+            "nbn map": nbnmap
+        }
+
+        // Layer Control
+        L.control.layers(mapBases, overlays, {collapsed: true}).addTo(map);
+
+        // Opacity Control
+        L.control.opacity(overlays, {
+            collapsed: true
+        }).addTo(map);
 
         // Legend
         var legend = L.control({position: 'bottomright'});
@@ -81,11 +114,8 @@
                 div.innerHTML +=
                 '<img src="https://programs.communications.gov.au/geoserver/national-broadband-network/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=All+Technology+Types" alt="legend">';
             return div;
-        };
-
+        };       
         legend.addTo(map);
-
-legend.addTo(map);
     </script>
 </body>
 </html>
