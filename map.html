@@ -3,6 +3,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
     integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
     crossorigin=""/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
@@ -15,7 +16,11 @@
 </head>
 <body>
     <style>
-        #mapid { height: 720px; width: 1280px; }
+        #mapid { 
+            height: 720px; 
+            width: 1280px;
+            margin: auto;
+        }
 
         .legend {
             line-height: 18px;
@@ -28,10 +33,27 @@
             margin-right: 8px;
             opacity: 0.7;
         }
+
+        .content {
+            padding-left: 40px;
+            padding-right: 40px;
+        }
+
+        body {
+            background-color: #EEEEEE;
+        }
     </style>
 
-    <div id="mapid"></div>
-    
+    <div class="content">
+        <h1>NBN Technology Map</h1>
+        <br />
+        <div>
+            <b>Disclaimer:</b> this is an unofficial estimation of NBN technology types across Australia. This map should only be used as a general guide of estimated technology types used in various suburbs. However, this map has no affiliation with the NBNCo, and makes no guarantees of being up to date or correct. For the most up to date information about a particular address, use the <a href="https://nbnco.com.au">NBNCo website</a>. The data shown in this map is based on a <a href="https://data.gov.au/dataset/ds-dga-c79b2219-7e1f-46a9-961f-e87668122f02/details">July 2020 dataset</a> published by the Australian Government. Any changes to NBN infrastructure since that date will not be reflected in this map.
+        </div>
+        <br />
+        <div id="mapid"></div>
+        <br />
+    </div>
     <script>
         var map = L.map('mapid').setView([-32, 133.7751], 5);
 
@@ -96,7 +118,6 @@
             "Street Map": streetMap,
             "Light Map": lightMap,
             "Dark Map": darkMap,
-            "nbn map": nbnmap
         }
 
         // Layer Control
