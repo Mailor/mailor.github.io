@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+}
+#map {
+    display: flex;
+    height: 720px; 
+    width: 1080px;
+}
+
+#map-container {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+}
+
+h2,
+h3 {
+  margin: 10px;
+  font-size: 1.2em;
+}
+
+h3 {
+  font-size: 1em;
+}
+
+p {
+  font-size: 0.85em;
+  margin: 10px;
+  text-align: left;
+}
+
+#features {
+    position: absolute;
+    top: 0;
+    right: 10%;
+    bottom: 0;
+    width: 50%;
+    overflow: auto;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/**
+* Set rules for how the map overlays
+* (information box and legend) will be displayed
+* on the page. */
+.map-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  margin-right: 20px;
+  font-family: Arial, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+}
+#features {
+  top: 0;
+  height: 100px;
+  margin-top: 20px;
+  width: 300px;
+  font-family: sans-serif;
+  border-radius: 3px;
+}
+
+#legend {
+  padding: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  line-height: 18px;
+  /*height: 150px;*/
+  margin-bottom: 40px;
+  /*width: 100px;*/
+}
+
+.legend-key {
+  display: inline-block;
+  border-radius: 20%;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+</style>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        <pre id="features"></pre>
+        <div class='map-overlay' id='legend'>
+            <h2>NBN Technology Map</h2>
+            <div id="pd"><p>Hover over a location!</p></div>
+        </div>
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZGFuaWVsMTExMTEiLCJhIjoiY2ttbzB3amR0MjAxazJubW50Z3A3dDJ5MiJ9.dzV0NCOfJrZ3THX-vVuj9A';
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/daniel11111/ckmps83eg0f7o17o0zjkwe8tx/draft', // style URL
+            center: [133.7751, -32], // starting position [lng, lat]
+            zoom: 5 // starting zoom
+        });
+
+        // wait for map to load before adjusting it
+        map.on('load', function () {
+            // make a pointer cursor
+            map.getCanvas().style.cursor = 'default';
+            
+            // define layer names
+            var layers = [
+                "Satellite",
+                "Fixed-Wireless",
+                "Fibre To The Node",
+                "Hybrid Fibre Coaxial",
+                "Fibre To The Basement",
+                "Fibre To The Curb",
+                "Fibre To The Premises",
+            ];
+            var colors = [
+                '#e29dce',
+                '#ec7f69',
+                '#ea9f43',
+                '#ecdd69',
+                '#69d7ec',
+                '#95ec69',
+                '#c169ec',
+            ];
+            
+            // create legend
+            for (i = 0; i < layers.length; i++) {
+                var layer = layers[i];
+                var color = colors[i];
+                var item = document.createElement('div');
+                var key = document.createElement('span');
+                key.className = 'legend-key';
+                key.style.backgroundColor = color;
+                
+                var value = document.createElement('span');
+                value.innerHTML = layer;
+                item.appendChild(key);
+                item.appendChild(value);
+                legend.appendChild(item);
+            }
+
+            /*map.on('mousemove', function (e) {
+                var features = map.queryRenderedFeatures(e.point);
+                
+                // Limit the number of properties we're displaying for
+                // legibility and performance
+                var displayProperties = [
+                'type',
+                'properties',
+                'id',
+                'layer',
+                'source',
+                'sourceLayer',
+                'state'
+                ];
+                
+                var displayFeatures = features.map(function (feat) {
+                    var displayFeat = {};
+                    displayProperties.forEach(function (prop) {
+                        displayFeat[prop] = feat[prop];
+                    });
+                    return displayFeat;
+                });
+                
+                document.getElementById('features').innerHTML = JSON.stringify(
+                    features,
+                    null,
+                    2
+                );
+            });*/
+            
+            // change info window on hover
+            map.on('mousemove', function (e) {
+                var features = map.queryRenderedFeatures(e.point);
+                
+                if (features.length > 0 && features[0].properties.network_infrastructure) {
+                    document.getElementById('features').innerHTML =
+                    '<p>Technology Type: <strong>' +
+                        features[0].properties.network_infrastructure +
+                    '</strong></p>' +
+                    '<p>Estimated Completion Date: <strong>' +
+                        features[0].properties.estimated_completion_date +
+                    '</strong></p>' +
+                    '<p>Service Area Identifier: <strong>' +
+                        features[0].properties.service_area_identifier +
+                    '</strong></p>';
+                } else {
+                    document.getElementById('features').innerHTML =
+                    '<p>No NBN information for this location</p>';
+                }
+            });
+        });
+    </script>
+ 
+</body>
+</html>
