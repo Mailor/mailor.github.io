@@ -2,10 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Display a map on a webpage</title>
+<title>NBN Technology Map</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css"
+    type="text/css"
+/>
 <style>
 body {
     margin: 0;
@@ -13,8 +19,8 @@ body {
 }
 #map {
     display: flex;
-    height: 720px; 
-    width: 1080px;
+    height: 80vh; 
+    width: 95%;
 }
 
 #map-container {
@@ -40,16 +46,6 @@ p {
   text-align: left;
 }
 
-#features {
-    position: absolute;
-    top: 0;
-    right: 10%;
-    bottom: 0;
-    width: 50%;
-    overflow: auto;
-    background: rgba(255, 255, 255, 0.8);
-}
-
 /**
 * Set rules for how the map overlays
 * (information box and legend) will be displayed
@@ -57,7 +53,7 @@ p {
 .map-overlay {
   position: absolute;
   bottom: 0;
-  right: 0;
+  right: 35px;
   background: rgba(255, 255, 255, 0.8);
   margin-right: 20px;
   font-family: Arial, sans-serif;
@@ -65,12 +61,16 @@ p {
   border-radius: 3px;
 }
 #features {
+  position: absolute;
   top: 0;
-  height: 100px;
-  margin-top: 20px;
-  width: 300px;
+  height: 140px;
+  margin-top: 60px;
+  right: 53px;
+  width: 350px;
   font-family: sans-serif;
   border-radius: 3px;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 #legend {
@@ -89,15 +89,32 @@ p {
   height: 10px;
   margin-right: 5px;
 }
+
+.content {
+  padding-left: 40px;
+  padding-right: 40px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 </style>
 </head>
 <body>
+    <div class="content">
+        <h1>NBN Technology Map</h1>
+        <br />
+        <div>
+            <b>Disclaimer:</b> this is an unofficial estimation of NBN technology types across Australia. This map should only be used as a general guide of estimated technology types used in various suburbs. However, this map has no affiliation with the NBNCo, and makes no guarantees of being up to date or correct. For the most up to date information about a particular address, use the <a href="https://nbnco.com.au">NBNCo website</a>. The data shown in this map is based on a <a href="https://data.gov.au/dataset/ds-dga-ed264f72-5fdf-4a54-8381-d35a10c7c85a/details">March 2021 dataset</a> published by the Australian Government. Any changes to NBN infrastructure since that date will not be reflected in this map.
+        </div>
+        <br />
+        <div id="mapid"></div>
+        <br />
+    </div>
+
     <div id="map-container">
         <div id="map"></div>
         <pre id="features"></pre>
         <div class='map-overlay' id='legend'>
             <h2>NBN Technology Map</h2>
-            <div id="pd"><p>Hover over a location!</p></div>
         </div>
     </div>
 
@@ -106,8 +123,79 @@ p {
         var map = new mapboxgl.Map({
             container: 'map', // container id
             style: 'mapbox://styles/daniel11111/ckmps83eg0f7o17o0zjkwe8tx/draft', // style URL
-            center: [133.7751, -32], // starting position [lng, lat]
-            zoom: 5 // starting zoom
+            center: [138.6007, -34.9285], // starting position [lng, lat]
+            zoom: 10 // starting zoom
+        });
+
+        var geocoder = new MapboxGeocoder({
+            countries: 'AU',
+            accessToken: mapboxgl.accessToken, // Set the access token
+            mapboxgl: mapboxgl, // Set the mapbox-gl instance
+            marker: false, // Don't use the default marker style
+            placeholder: 'Search...', // Placeholder text for the search bar
+            flyTo: true, // Disable flyTo animation due to queryRenderedFeatures in geocoder not waiting until fly is done.
+            bbox: [113.338953078, -43.6345972634, 153.569469029, -10.6681857235], // Boundary for Australia
+        });
+
+        // Add the geocoder to the map
+        map.addControl(geocoder);
+
+        // Listen for the `result` event from the Geocoder
+        // `result` event is triggered when a user makes a selection
+        // Add a marker at the result's coordinates
+        geocoder.on('result', function (e) {
+            map.on('moveend', () => {
+                const point = map.project(e.result.center);
+                var features = map.queryRenderedFeatures(point, {layers: ['choropleth-fill']});
+
+                var layerColourMap = {
+                    "Satellite": 'pink',
+                    "Fixed-wireless": 'red',
+                    "FTTN": 'orange',
+                    "HFC": 'yellow',
+                    "FTTB (vectored or non-vectored)": 'blue',
+                    "FTTdp/FTTC": 'green',
+                    "FTTP": 'purple',
+                    undefined: 'white',
+                };
+
+                    var popupHTML = '<p>Address: <strong>' + e.result.place_name + '</strong></p>';
+
+                    if (features.length > 0 && features[0].properties.network_infrastructure) {
+                            popupHTML +=
+                            '<p>Technology Type: <strong>' +
+                                features[0].properties.network_infrastructure +
+                            '</strong></p>' +
+                            '<p>Estimated Completion Date: <strong>' +
+                                features[0].properties.estimated_completion_date +
+                            '</strong></p>' +
+                            '<p>Service Area Identifier: <strong>' +
+                                features[0].properties.service_area_identifier +
+                            '</strong></p>';
+                        } else {
+                            popupHTML +=
+                            '<p>No NBN information for this location</p>';
+                        }
+
+                    window.console.log('*** ', features);
+
+                    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML);
+
+                    // create DOM element for the marker
+                    const markerElement = document.createElement('div');
+                    markerElement.id = 'marker';
+                    var marker = new mapboxgl
+                        .Marker(
+                            {
+                                color: layerColourMap[
+                                    features.length > 0 && features[0] && features[0].properties.network_infrastructure
+                                ]
+                            }
+                        )
+                        .setLngLat(e.result.geometry.coordinates)
+                        .setPopup(popup)
+                        .addTo(map).togglePopup();
+            });
         });
 
         // wait for map to load before adjusting it
@@ -150,43 +238,13 @@ p {
                 item.appendChild(value);
                 legend.appendChild(item);
             }
-
-            /*map.on('mousemove', function (e) {
-                var features = map.queryRenderedFeatures(e.point);
-                
-                // Limit the number of properties we're displaying for
-                // legibility and performance
-                var displayProperties = [
-                'type',
-                'properties',
-                'id',
-                'layer',
-                'source',
-                'sourceLayer',
-                'state'
-                ];
-                
-                var displayFeatures = features.map(function (feat) {
-                    var displayFeat = {};
-                    displayProperties.forEach(function (prop) {
-                        displayFeat[prop] = feat[prop];
-                    });
-                    return displayFeat;
-                });
-                
-                document.getElementById('features').innerHTML = JSON.stringify(
-                    features,
-                    null,
-                    2
-                );
-            });*/
             
             // change info window on hover
             map.on('mousemove', function (e) {
                 var features = map.queryRenderedFeatures(e.point);
-                
                 if (features.length > 0 && features[0].properties.network_infrastructure) {
                     document.getElementById('features').innerHTML =
+                    '<p>Hover over a location!</p>' +
                     '<p>Technology Type: <strong>' +
                         features[0].properties.network_infrastructure +
                     '</strong></p>' +
@@ -198,6 +256,7 @@ p {
                     '</strong></p>';
                 } else {
                     document.getElementById('features').innerHTML =
+                    '<p>Hover over a location!</p>' +
                     '<p>No NBN information for this location</p>';
                 }
             });
