@@ -140,6 +140,8 @@ p {
         // Add the geocoder to the map
         map.addControl(geocoder);
 
+        var markers = [];
+
         // Listen for the `result` event from the Geocoder
         // `result` event is triggered when a user makes a selection
         // Add a marker at the result's coordinates
@@ -159,40 +161,45 @@ p {
                     undefined: 'white',
                 };
 
-                    var popupHTML = '<p>Address: <strong>' + e.result.place_name + '</strong></p>';
+                var popupHTML = '<p>Address: <strong>' + e.result.place_name + '</strong></p>';
 
-                    if (features.length > 0 && features[0].properties.network_infrastructure) {
-                            popupHTML +=
-                            '<p>Technology Type: <strong>' +
-                                features[0].properties.network_infrastructure +
-                            '</strong></p>' +
-                            '<p>Estimated Completion Date: <strong>' +
-                                features[0].properties.estimated_completion_date +
-                            '</strong></p>' +
-                            '<p>Service Area Identifier: <strong>' +
-                                features[0].properties.service_area_identifier +
-                            '</strong></p>';
-                        } else {
-                            popupHTML +=
-                            '<p>No NBN information for this location</p>';
-                        }
+                if (features.length > 0 && features[0].properties.network_infrastructure) {
+                        popupHTML +=
+                        '<p>Technology Type: <strong>' +
+                            features[0].properties.network_infrastructure +
+                        '</strong></p>' +
+                        '<p>Estimated Completion Date: <strong>' +
+                            features[0].properties.estimated_completion_date +
+                        '</strong></p>' +
+                        '<p>Service Area Identifier: <strong>' +
+                            features[0].properties.service_area_identifier +
+                        '</strong></p>';
+                    } else {
+                        popupHTML +=
+                        '<p>No NBN information for this location</p>';
+                    }
 
-                    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML);
+                const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML);
+                
+                const markersAtThisLngLat = markers.filter((marker) =>
+                    marker.getLngLat().toArray()[0] == e.result.center[0] &&
+                        marker.getLngLat().toArray()[1] == e.result.center[1]
+                );
 
-                    // create DOM element for the marker
-                    const markerElement = document.createElement('div');
-                    markerElement.id = 'marker';
+                if (markersAtThisLngLat.length === 0) {
                     var marker = new mapboxgl
-                        .Marker(
-                            {
-                                color: layerColourMap[
-                                    features.length > 0 && features[0] && features[0].properties.network_infrastructure
-                                ]
-                            }
-                        )
-                        .setLngLat(e.result.geometry.coordinates)
-                        .setPopup(popup)
-                        .addTo(map).togglePopup();
+                    .Marker(
+                        {
+                            color: layerColourMap[
+                                features.length > 0 && features[0] && features[0].properties.network_infrastructure
+                            ]
+                        }
+                    )
+                    .setLngLat(e.result.geometry.coordinates)
+                    .setPopup(popup)
+                    .addTo(map).togglePopup();
+                    markers.push(marker);
+                }
             });
         });
 
